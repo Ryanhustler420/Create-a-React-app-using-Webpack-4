@@ -227,3 +227,60 @@ The value we are giving the ``template`` key is where we are looking for our HTM
 
 Now run open ``dist/index.html`` and you should see “Hello React” in your browser.
 
+
+## Setting up webpack-dev-server
+
+It is a bit tedious to keep running this command every time you want to see your changes in the browser.
+To have webpack “watch” our changes and thus refresh whenever we have made changes to any of our components,
+we can use **webpack-dev-server** module.
+
+Go ahead and install this as a dev dependency
+
+```
+
+npm i webpack-dev-server -D
+
+```
+
+> Then change your package.json start scripts like so (in bold):
+
+
+```javaScript
+hange your package.json start scripts like so (in bold):
+
+{
+  "name": "react_search",
+  "version": "1.0.0",
+  "description": "Search app using React",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server --mode development --open", // <-- this line should be added
+    "build": "webpack --mode production"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "html-webpack-plugin": "^3.0.6",
+    "webpack": "^4.1.1",
+    "webpack-cli": "^2.0.10",
+    "webpack-dev-server": "^3.1.0"
+  }
+}
+
+```
+
+If we now run ``npm run start`` you should see **localhost:8080** open up in our default browser — that’s what the ``—-open`` flag is for. Now everytime you make changes, it will refresh the page.
+
+You can also add a ``--hot`` flag to your npm start script which will allow you to only reload the component that you’ve changed instead of doing a full page reload. 
+
+
+
+
