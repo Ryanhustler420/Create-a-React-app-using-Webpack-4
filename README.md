@@ -282,5 +282,138 @@ If we now run ``npm run start`` you should see **localhost:8080** open up in our
 You can also add a ``--hot`` flag to your npm start script which will allow you to only reload the component that you’ve changed instead of doing a full page reload. 
 
 
+## Setting up CSS
+
+The last part involves setting up our CSS. As we will be importing CSS files into our React components,
+we need **css-loader** module to resolve them. Once that’s resolved, we also need a **style-loader** to inject
+this into our DOM — adding a < style > tag into the < head > element of our HTML.
+
+> Go ahead and install both of these modules as a dev dependency:
+
+```
+npm i css-loader style-loader -D
+```
+
+> We then need to update our webpack.config.js file like so:
 
 
+```javaScript
+
+const HtmlWebPackPlugin = require("html-webpack-plugin");
+
+const htmlWebpackPlugin = new HtmlWebPackPlugin({
+  template: "./src/index.html",
+  filename: "./index.html"
+});
+
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader"
+        }
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"]
+      }
+    ]
+  },
+  plugins: [htmlWebpackPlugin]
+};
+
+```
+**Note that the order of adding these loaders is important. First, 
+  we need to resolve the CSS files before adding them to the DOM with the style-loader.
+  By default, webpack uses the loaders from the right (last element in the array)
+  to the left (first element in the array).**
+
+> Making CSS modular
+
+We can also make CSS modular using webpack. This means class name will be scoped locally and specific to only the component in question.
+
+> To do this, we can provide some options to css-loader:
+
+```javaScript
+
+const HtmlWebPackPlugin = require("html-webpack-plugin");
+
+const htmlWebpackPlugin = new HtmlWebPackPlugin({
+  template: "./src/index.html",
+  filename: "./index.html"
+});
+
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader"
+        }
+      },
+      {
+        test: /\.css$/,
+        use: [
+          {
+            loader: "style-loader"
+          },
+          {
+            loader: "css-loader",
+            options: {
+              modules: true,
+              importLoaders: 1,
+              localIdentName: "[name]_[local]_[hash:base64]",
+              sourceMap: true,
+              minimize: true
+            }
+          }
+        ]
+      }
+    ]
+  },
+  plugins: [htmlWebpackPlugin]
+};
+
+```
+
+As we need to give options, each loader is now an object with a key-value pair.
+To enable CSS modules, we need to set **module** option for css-loader to be **true**.
+The **importLoaders** option configures how many loaders before css-loader should be applied.
+For example, sass-loader would have to come before css-loader.
+
+``The localIdentName allows you to configure the generated identification.``
+
+- **[name]** will take the name of your component
+- **[local]** is the name of your class/id
+- **[hash:base64]** is the randomly generated hash which will be unique in every component’s CSS
+
+To make this a bit more visual, I’ll give you an example.
+Say I have a component named ``Form`` and I have a button with a CSS class ``primaryButton``.
+I also have another component called ``Search`` and a button in it with a CSS class ``primaryButton``.
+However, both of these classes have different CSS:
+
+```css
+  Form button
+  .primaryButton {
+    background-color: green;
+  }
+  Search button
+  .primaryButton {
+    background-color: blue;
+  }
+```
+
+When webpack bundles our application, depending on which CSS comes latest, both of our buttons could have the color green or blue instead of Form having green and Search having blue.
+
+This is where the localIdentName comes into place. With this, once our application is bundled, our buttons will have a unique class name!
+
+![DevToolCrome](https://cdn-images-1.medium.com/max/1000/1*r9EZ9GzG_Xkya_ON1uGqIQ.png)
+
+As you can see, the button class name in the Form component is different to the one in the Search component — their naming starts with the name of the component, class name, and unique hash code.
+
+So with this, you won’t have to worry about whether you have given the same class name throughout your whole application — you only have to worry about whether you have used it in the same component.
